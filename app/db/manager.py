@@ -1,4 +1,4 @@
-from dbconfig import DB_CONFIG
+from config.dbconfig import DB_CONFIG
 from pymysql import connect
 from pymysql.cursors import DictCursor
 from contextlib import contextmanager
