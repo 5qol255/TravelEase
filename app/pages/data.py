@@ -4,49 +4,6 @@ from db import manager as dbm
 st.title("数据管理")
 
 
-def __operate_options_columns():
-    st.header("选择操作")
-    st.session_state.operate_option = st.radio(
-        "选择操作",
-        ("增加", "删除", "修改"),
-        label_visibility="collapsed",
-    )
-
-
-def __operate_target_columns():
-    st.header("选择对象")
-    st.session_state.operate_target = st.radio(
-        "选择对象",
-        ("航班", "公交", "酒店", "用户"),
-        label_visibility="collapsed",
-    )
-
-
-def __operate_columns():
-    st.header("填写数据")
-    skip_tab = {
-        "增加": {
-            "航班": __add_flight,
-            "公交": __add_bus,
-            "酒店": __add_hotel,
-            "用户": __add_customer,
-        },
-        "删除": {
-            "航班": __delete_flight,
-            "公交": __delete_bus,
-            "酒店": __delete_hotel,
-            "用户": __delete_customer,
-        },
-        "修改": {
-            "航班": __modify_flight,
-            "公交": __modify_bus,
-            "酒店": __modify_hotel,
-            "用户": __modify_customer,
-        },
-    }
-    skip_tab[st.session_state.operate_option][st.session_state.operate_target]()
-
-
 def __add_flight():
     flight_table = [
         st.text_input("航班号", key="flight_number"),
@@ -345,6 +302,49 @@ def __modify_customer():
             st.error(f"修改失败：{e}")
         else:
             st.success("修改成功！")
+
+
+def __operate_options_columns():
+    st.header("选择操作")
+    st.session_state.operate_option = st.radio(
+        "选择操作",
+        ("增加", "删除", "修改"),
+        label_visibility="collapsed",
+    )
+
+
+def __operate_target_columns():
+    st.header("选择对象")
+    st.session_state.operate_target = st.radio(
+        "选择对象",
+        ("航班", "公交", "酒店", "用户"),
+        label_visibility="collapsed",
+    )
+
+
+def __operate_columns():
+    st.header("填写数据")
+    skip_tab = {
+        "增加": {
+            "航班": __add_flight,
+            "公交": __add_bus,
+            "酒店": __add_hotel,
+            "用户": __add_customer,
+        },
+        "删除": {
+            "航班": __delete_flight,
+            "公交": __delete_bus,
+            "酒店": __delete_hotel,
+            "用户": __delete_customer,
+        },
+        "修改": {
+            "航班": __modify_flight,
+            "公交": __modify_bus,
+            "酒店": __modify_hotel,
+            "用户": __modify_customer,
+        },
+    }
+    skip_tab[st.session_state.operate_option][st.session_state.operate_target]()
 
 
 columns = st.columns(3)

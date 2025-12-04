@@ -274,12 +274,28 @@ def get_flight(flight_num):
         return cursor.fetchone()
 
 
+def get_all_flights():
+    """获取所有航班信息"""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM FLIGHTS")
+        return cursor.fetchall()
+
+
 def get_bus(location):
     """获取公交信息"""
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM BUS WHERE location = %s", (location,))
         return cursor.fetchone()
+
+
+def get_all_buses():
+    """获取所有公交信息"""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM BUS")
+        return cursor.fetchall()
 
 
 def get_hotel(location):
@@ -290,12 +306,28 @@ def get_hotel(location):
         return cursor.fetchone()
 
 
-def get_customer(cust_id):
+def get_all_hotels():
+    """获取酒店信息"""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM HOTELS")
+        return cursor.fetchall()
+
+
+def get_customer(cust_name):
     """获取客户信息"""
     with get_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM CUSTOMERS WHERE custID = %s", (cust_id,))
+        cursor.execute("SELECT * FROM CUSTOMERS WHERE custName = %s", (cust_name,))
         return cursor.fetchone()
+
+
+def get_all_customers():
+    """获取客户信息"""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM CUSTOMERS")
+        return cursor.fetchall()
 
 
 def get_reservations(cust_name):
@@ -303,11 +335,7 @@ def get_reservations(cust_name):
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            """
-        SELECT resvType, resvKey 
-        FROM RESERVATIONS 
-        WHERE custName = %s
-        """,
+            "SELECT resvType, resvKey FROM RESERVATIONS WHERE custName = %s",
             (cust_name,),
         )
         return cursor.fetchall()
