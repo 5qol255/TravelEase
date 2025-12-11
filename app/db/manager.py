@@ -110,6 +110,15 @@ def delete_customer(cust_id):
         conn.commit()
 
 
+def delete_reservation(resv_key):
+    """删除预订记录"""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        query = "DELETE FROM RESERVATIONS WHERE resvKey = %s"
+        cursor.execute(query, (resv_key,))
+        conn.commit()
+
+
 def update_flight(flight_num, price, num_seats, num_avail, from_city, ariv_city):
     """更新航班记录"""
     with get_connection() as conn:
@@ -151,7 +160,7 @@ def update_hotel(location, price, num_rooms, num_avail):
         conn.commit()
 
 
-def update_customer(cust_name, cust_id):
+def update_customer_name(cust_name, cust_id):
     """更新客户记录"""
     with get_connection() as conn:
         cursor = conn.cursor()
@@ -161,6 +170,19 @@ def update_customer(cust_name, cust_id):
         WHERE custID = %s
         """
         cursor.execute(query, (cust_name, cust_id))
+        conn.commit()
+
+
+def update_customer_id(cust_name, cust_id):
+    """更新客户记录"""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        query = """
+        UPDATE CUSTOMERS 
+        SET custID = %s
+        WHERE custName = %s
+        """
+        cursor.execute(query, (cust_id, cust_name))
         conn.commit()
 
 

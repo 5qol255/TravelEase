@@ -216,6 +216,47 @@ def __delete_customer():
             st.success("删除成功！")
 
 
+def __delete_reservation():
+    if "del_cust_name" not in st.session_state:
+        st.session_state.del_cust_name = ""
+    if "resv_result" not in st.session_state:
+        st.session_state.resv_result = []
+    del_cust_name = st.text_input(
+        "客户姓名", value=st.session_state.del_cust_name, key="del_cust_name"
+    )
+    if del_cust_name != st.session_state.del_cust_name:
+        st.session_state.del_cust_name = del_cust_name
+
+    if not del_cust_name:
+        st.error("请输入客户姓名")
+    else:
+        if st.button("查询预订"):
+            st.session_state.resv_result = dbm.get_reservations(del_cust_name)
+
+        st.table(st.session_state.resv_result)
+        delete_target = st.number_input(
+            "请输入要删除的预订编号",
+            format="%d",
+            min_value=0,
+            step=1,
+            key="reservation_id_",
+        )
+        if st.button("删除"):
+            result = st.session_state.resv_result
+            if not result:
+                st.error("没有找到预订记录")
+            elif delete_target >= len(result):
+                st.error("输入的编号超出范围")
+            else:
+                try:
+                    reservation_id = result[delete_target]["resvKey"]
+                    dbm.delete_reservation(reservation_id)
+                    st.session_state.resv_result = dbm.get_reservations(del_cust_name)
+                    st.success("删除成功！")
+                except Exception as e:
+                    st.error(f"删除失败：{e}")
+
+
 def __modify_flight():
     changes_table = [
         st.text_input("航班号", key="flight_number"),
@@ -252,12 +293,7 @@ def __modify_bus():
     # 准备提交
     if st.button("提交"):
         try:
-            dbm.update_bus(
-                bus_table[0],
-                bus_table[1],
-                bus_table[2],
-                bus_table[3],
-            )
+            dbm.update_bus(bus_table[0], bus_table[1], bus_table[2], bus_table[3])
         except Exception as e:
             st.error(f"修改失败：{e}")
         else:
@@ -275,10 +311,7 @@ def __modify_hotel():
     if st.button("提交"):
         try:
             dbm.update_hotel(
-                hotel_table[0],
-                hotel_table[1],
-                hotel_table[2],
-                hotel_table[3],
+                hotel_table[0], hotel_table[1], hotel_table[2], hotel_table[3]
             )
         except Exception as e:
             st.error(f"修改失败：{e}")
@@ -291,17 +324,21 @@ def __modify_customer():
         st.text_input("用户名", key="cust_name"),
         st.text_input("用户ID", key="cust_id"),
     ]
+    name_or_id = st.radio(
+        "选择修改内容", ("修改用户名", "修改用户ID"), key="name_or_id", index=0
+    )
     # 准备提交
     if st.button("提交"):
         try:
-            dbm.update_customer(
-                customer_table[0],
-                customer_table[1],
-            )
+            if name_or_id == "修改用户名":
+                dbm.update_customer_name(customer_table[0], customer_table[1])
+            else:
+                dbm.update_customer_id(customer_table[0], customer_table[1])
         except Exception as e:
             st.error(f"修改失败：{e}")
         else:
             st.success("修改成功！")
+            st.json(dbm.get_customer(customer_table[0]))
 
 
 def __operate_options_columns():
@@ -315,10 +352,12 @@ def __operate_options_columns():
 
 def __operate_target_columns():
     st.header("选择对象")
+    if st.session_state.operate_option == "删除":
+        targets = ("航班", "公交", "酒店", "用户", "预定")
+    else:
+        targets = ("航班", "公交", "酒店", "用户")
     st.session_state.operate_target = st.radio(
-        "选择对象",
-        ("航班", "公交", "酒店", "用户"),
-        label_visibility="collapsed",
+        "选择对象", targets, label_visibility="collapsed"
     )
 
 
@@ -336,6 +375,7 @@ def __operate_columns():
             "公交": __delete_bus,
             "酒店": __delete_hotel,
             "用户": __delete_customer,
+            "预定": __delete_reservation,
         },
         "修改": {
             "航班": __modify_flight,
