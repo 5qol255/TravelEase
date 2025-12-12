@@ -217,22 +217,18 @@ def __delete_customer():
 
 
 def __delete_reservation():
-    if "del_cust_name" not in st.session_state:
-        st.session_state.del_cust_name = ""
-    if "resv_result" not in st.session_state:
-        st.session_state.resv_result = []
-    del_cust_name = st.text_input(
-        "客户姓名", value=st.session_state.del_cust_name, key="del_cust_name"
-    )
-    if del_cust_name != st.session_state.del_cust_name:
-        st.session_state.del_cust_name = del_cust_name
+    del_cust_name = st.text_input("客户姓名", key="del_cust_name")
 
     if not del_cust_name:
         st.error("请输入客户姓名")
+        return
+    if st.button("查询预订"):
+        st.session_state.resv_result = dbm.get_reservations(del_cust_name)
+    if "resv_result" not in st.session_state:
+        return
+    if not st.session_state.resv_result:
+        st.info("该客户无预订记录")
     else:
-        if st.button("查询预订"):
-            st.session_state.resv_result = dbm.get_reservations(del_cust_name)
-
         st.table(st.session_state.resv_result)
         delete_target = st.number_input(
             "请输入要删除的预订编号",
@@ -250,9 +246,49 @@ def __delete_reservation():
             else:
                 try:
                     reservation_id = result[delete_target]["resvKey"]
+                    resv_type = result[delete_target]["resvType"]
                     dbm.delete_reservation(reservation_id)
-                    st.session_state.resv_result = dbm.get_reservations(del_cust_name)
+                    primary_key = reservation_id[: reservation_id.find("_")]
+                    if resv_type == 1:
+                        flight = dbm.get_flight(primary_key)
+                        if flight is not None:
+                            if flight["numAvail"] >= flight["numSeats"]:
+                                flight["numAvail"] = flight["numSeats"] - 1
+                            dbm.update_flight(
+                                flight["flightNum"],
+                                flight["price"],
+                                flight["numSeats"],
+                                flight["numAvail"] + 1,
+                                flight["FromCity"],
+                                flight["ArivCity"],
+                            )
+                    elif resv_type == 2:
+                        hotel = dbm.get_hotel(primary_key)
+                        if hotel is not None:
+                            if hotel["numAvail"] >= hotel["numRooms"]:
+                                hotel["numAvail"] = hotel["numRooms"] - 1
+                            dbm.update_hotel(
+                                hotel["location"],
+                                hotel["price"],
+                                hotel["numRooms"],
+                                hotel["numAvail"] + 1,
+                            )
+                    elif resv_type == 3:
+                        bus = dbm.get_bus(primary_key)
+                        if bus is not None:
+                            if bus["numAvail"] >= bus["numBus"]:
+                                bus["numAvail"] = bus["numBus"] - 1
+                            dbm.update_bus(
+                                bus["location"],
+                                bus["price"],
+                                bus["numBus"],
+                                bus["numAvail"] + 1,
+                            )
+                    else:
+                        st.error("未知预订类型")
                     st.success("删除成功！")
+                    st.info("请刷新页面以更新预订列表")
+                    st.session_state.resv_result = dbm.get_reservations(del_cust_name)
                 except Exception as e:
                     st.error(f"删除失败：{e}")
 
